@@ -1,17 +1,62 @@
-# Deep Learning for autonomous vehiculs 2025 (CIVIL-459)
-Theo Houle
+# Deep Learning for Autonomous Vehicles 2025 (CIVIL-459)  
+**Théo Houle**  
+**Kelan Solomon**  
 
-Kelan Solomon
+**Team: Drunk Drivers**
 
-Team: Drunk Drivers
+---
+
 ## Milestone 1: Basic End-to-End Planner
-Implement an end-to-end model that predicts future trajectories based on:
-- Camera RGB image
-- Driving command
-- Vehicle’s motion history (sdc_history_feature)
-### Structure
-The simplest model was the most effective for our use case. Image features were encoded using ResNet-18 and concatenated with the raw position history. This combined data was then passed through two fully connected layers.
 
-We also experimented with using seq2seq with recurrent neural networks to encode the position data. Specifically, we passed the positions through an LSTM, encoded the image using a CNN, and concatenated the resulting image embedding with the final hidden state of the LSTM. This representation was then decoded using another LSTM. Additionally, we tried incorporating residual connections between the image features and the concatenated data. Many variations of this were tried, adding the context (image) to cell state, the hidden state and the input, however, we were unable to achieve an ADE below 2 with this method. We believe the model may have been too deep for the available dataset, leading to underperformance due to insufficient training data. 
+We implemented an end-to-end model to predict future trajectories using the following inputs:
+- RGB camera image  
+- Driving command  
+- Vehicle’s motion history (`sdc_history_feature`)  
 
-### How to run/train/infer
+### Model Architecture
+
+The simplest approach turned out to be the most effective for our use case. We used ResNet-18 to encode the camera image, removing its final layer to extract features. The vehicle’s motion history was not encoded, but rather directly concatenated with the image features. We also added the most recent position as an ego state to represent instantaneous speed.
+
+The combined feature vector was passed through a two-layer linear model, achieving an Average Displacement Error (ADE) of **1.70** in the Kaggle competition.
+
+### Experiments
+
+We explored more complex architectures, including a sequence-to-sequence model using recurrent neural networks. In this setup:
+- Position history was encoded using an LSTM.  
+- Image features were extracted via a CNN.  
+- The LSTM’s final hidden state was concatenated with the image embedding.  
+- The resulting vector was passed through a decoder LSTM to predict future trajectories.  
+
+We also experimented with residual connections, adding the image context to various parts of the decoder (input, hidden state, cell state). Despite many variations, we were unable to achieve an ADE below 2. We suspect the model’s depth, combined with limited training data, led to underperformance.
+
+### Alternative Strategy: "Winner-Takes-All"
+
+We tried a "winner-takes-all" approach where the model outputs multiple potential trajectories and is trained using the one with the lowest error. This method did not improve performance, likely due to incorrect implementation, which we were unable to resolve in time.
+
+### Hyperparameter Tuning
+
+We performed a grid search over the following settings:
+- **Batch size:** 16, 32, 64  
+- **Learning rate:** 0.001, 0.01, 0.1  
+- **Loss function:** MSE, Cross-Entropy, Binary Cross-Entropy  
+- **History encoder:** None, LSTM, GRU  
+- **Ego encoder:** None, two-layer linear model  
+
+All results were saved locally. However, the grid search takes too long to complete, and we couldn’t obtain final results before the milestone deadline.
+
+---
+
+## Usage Instructions
+
+### Training
+
+To train the model, run the `milestone1.py` script. It requires the dependencies listed in `requirements.txt`. You can view available parameters by running the script with `--help`.
+
+### Inference / CSV Generation
+
+To generate a CSV file for the competition:
+- Use the `generatecsv.py` script.  
+- Specify the path to a trained `.pth` model file.  
+- Parameter options are similar to those used during training.
+
+Run with `--help` for detailed usage instructions.
