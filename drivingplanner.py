@@ -16,7 +16,7 @@ class DrivingPlanner(nn.Module):
         cnn_out_dim = base_model.fc.in_features
 
         # RNN for processing history
-        if history_encoder == None:
+        if history_encoder == None or history_encoder == 'None':
             self.rnn = None
             rnn_out_dim = history_steps * step_dim
         elif history_encoder == 'GRU':
@@ -24,7 +24,7 @@ class DrivingPlanner(nn.Module):
             rnn_out_dim = hidden_dim
         elif history_encoder == 'LSTM':
             self.rnn = nn.LSTM(input_size=3, hidden_size=hidden_dim, batch_first=True, bidirectional=True)
-            rnn_out_dim = hidden_dim
+            rnn_out_dim = hidden_dim * 2
         else:
             history_encoder = None
             self.rnn = None
@@ -64,8 +64,9 @@ class DrivingPlanner(nn.Module):
             _, history_last = self.rnn(history)
             history_feat = history_last[-1]
         else:
-            _, (history_last, _) = self.rnn(history)
-            history_feat = history_last[-1]
+            _, (h_n, c_n) = self.rnn(history)
+            # Concat the long term and short term memory
+            history_feat = torch.cat((h_n[-1], c_n[-1]), dim=1)
 
         # Process ego
         ego = history[:,-2]

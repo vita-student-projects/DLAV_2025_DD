@@ -20,6 +20,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import os
 
+# Supress dataloader user warnings
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, module="torch.utils.data.dataloader")
+
 k = 4
 # load the data
 data = []
@@ -48,7 +52,16 @@ def train(model, train_loader, val_loader, optimizer, logger, criterion, num_epo
             optimizer.step()
 
             if idx % 10 == 0:
-                logger.log(step=epoch * len(train_loader) + idx, loss=loss.item())
+                ADE = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
+                FDE = torch.norm(pred_future[:, -1, :2] - future[:, -1, :2], p=2, dim=-1).mean()
+
+                metrics = {
+                    'loss': loss.item(),
+                    'ADE': ADE.item(),
+                    'FDE': FDE.item()
+                }
+                logger.log(step=epoch * len(train_loader) + idx, **metrics)
+
             train_loss += loss.item()
 
         # Validation
@@ -80,7 +93,7 @@ if loss == "mse":
 elif loss == "cross_entropy":
     criterion = nn.CrossEntropyLoss()
 elif loss == "bce":
-    criterion = nn.BCELoss()
+    criterion = nn.BCELossWithLogits()
 else:
     criterion = nn.MSELoss()
 
@@ -114,6 +127,10 @@ epochs = int(args.epochs)
 train(model, train_loader, val_loader, optimizer, logger, criterion=criterion, num_epochs=epochs)
 
 
+# Save the logger metrics
+logger.to_csv(save_dir)
+logger.plot_metrics(save_dir)
+
 # save the model
 save_path = os.path.join(save_dir, args.name + ".pth")
 torch.save(model.state_dict(), save_path)
@@ -128,10 +145,7 @@ future = val_batch_zero['future'].to(device)
 
 model.eval()
 with torch.no_grad():
-    preds, scores = model(camera, history)
-
-best_mode = scores.argmax(dim=1)
-pred_future = preds[torch.arange(preds.size(0)), best_mode]
+    pred_future = model(camera, history)
 
 camera = camera.cpu().numpy()
 history = history.cpu().numpy()
@@ -140,7 +154,6 @@ pred_future = pred_future.cpu().numpy()
 
 with open(f"test_public/0.pkl", "rb") as f:
     data = pickle.load(f)
-print(data.keys())
 # Note the absence of sdc_future_feature
 
 test_data_dir = "test_public"
@@ -183,4 +196,3 @@ save_path = os.path.join(save_dir, args.name + ".csv")
 df_xy.to_csv(save_path, index=False)
 print(f"Predictions saved to {save_path}")
 
-print(f"Shape of df_xy: {df_xy.shape}")
