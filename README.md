@@ -1,6 +1,8 @@
 # Deep Learning for autonomous vehiculs 2025 (CIVIL-459)
 Theo Houle
+
 Kelan Solomon
+
 Team: Drunk Drivers
 ## Milestone 1: Basic End-to-End Planner
 Implement an end-to-end model that predicts future trajectories based on:
