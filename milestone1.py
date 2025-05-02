@@ -1,11 +1,10 @@
 # Install gdown to handle Google Drive file download
-import gdown
-import zipfile
 import pickle
 
 from drivingplanner import DrivingPlanner
 from logger import Logger
 from loader import DrivingDataset
+from cmdparser import parser
 
 import numpy as np
 import random
@@ -29,11 +28,9 @@ for i in random.choices(np.arange(1000), k=k):
         data.append(pickle.load(f))
 
 
-def train(model, train_loader, val_loader, optimizer, logger, num_epochs=50):
+def train(model, train_loader, val_loader, optimizer, logger, criterion, num_epochs=50):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
-
-    criterion = nn.MSELoss()
 
     for epoch in range(num_epochs):
         # Training
@@ -45,13 +42,8 @@ def train(model, train_loader, val_loader, optimizer, logger, num_epochs=50):
             future = batch['future'].to(device)
 
             optimizer.zero_grad()
-            preds, scores = model(camera, history)
-
-            best_mode = scores.argmax(dim=1)
-            pred_future = preds[torch.arange(preds.size(0)), best_mode]
-            loss = wta_loss(preds, future)
-            #loss = criterion(pred_future[..., :2], future[..., :2])
-            loss += nn.CrossEntropyLoss()(scores, best_mode)
+            pred_future = model(camera, history)
+            loss = criterion(pred_future[..., :2], future[..., :2])
             loss.backward()
             optimizer.step()
 
@@ -68,11 +60,8 @@ def train(model, train_loader, val_loader, optimizer, logger, num_epochs=50):
                 history = batch['history'].to(device)
                 future = batch['future'].to(device)
 
-                preds, scores = model(camera, history)
-                best_mode = scores.argmax(dim=1)
-                pred_future = preds[torch.arange(preds.size(0)), best_mode]
-                #loss = criterion(pred_future, future)
-                loss = wta_loss(preds, future)
+                pred_future = model(camera, history)
+                loss = criterion(pred_future, future)
                 ADE = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
                 FDE = torch.norm(pred_future[:, -1, :2] - future[:, -1, :2], p=2, dim=-1).mean()
                 ade_all.append(ADE.item())
@@ -81,37 +70,20 @@ def train(model, train_loader, val_loader, optimizer, logger, num_epochs=50):
 
         print(f'Epoch {epoch+1}/{num_epochs} | Train Loss: {train_loss/len(train_loader):.4f} | Val Loss: {val_loss/len(val_loader):.4f} | ADE: {np.mean(ade_all):.4f} | FDE: {np.mean(fde_all):.4f}')
 
-def wta_loss(predictions, target):
-    """
-    predictions: [B, num_modes, T, 3]
-    target: [B, T, 3]
-    """
-    B, M, _, _ = predictions.shape
-
-    # Expand target to match shape
-    target_exp = target.unsqueeze(1).expand(-1, M, -1, -1)  # [B, M, T, 3]
-
-    # MSE per mode
-    mse = ((predictions - target_exp) ** 2).mean(dim=(2, 3))  # [B, M]
-
-    # Select best mode for each sample
-    best_mode = mse.argmin(dim=1)  # [B]
-    best_preds = predictions[torch.arange(B), best_mode]  # [B, T, 3]
-
-    # Compute loss on the best prediction
-    loss = nn.MSELoss()(best_preds, target)
-    return loss
 
 # Read the save path from the cmd line arguments
-import argparse
-parser = argparse.ArgumentParser(description='Save path for the model')
-parser.add_argument('--name', type=str, default='phase1_model', help='Name to use to save the model')
-parser.add_argument('--hencoder', type=str, default=None, help="History encoder to use")
-parser.add_argument('--lr', type=float, default=1e-3, help="History encoder to use")
-parser.add_argument('--epochs', type=float, default=50, help="Number of epochs")
-parser.add_argument('--bs', type=float, default=32, help="Batch size")
-parser.add_argument('--ego', action='store_true', default=False, help="Wether to encode the ego state")
 args = parser.parse_args()
+
+loss = args.loss
+if loss == "mse":
+    criterion = nn.MSELoss()
+elif loss == "cross_entropy":
+    criterion = nn.CrossEntropyLoss()
+elif loss == "bce":
+    criterion = nn.BCELoss()
+else:
+    criterion = nn.MSELoss()
+
 
 train_data_dir = "train"
 val_data_dir = "val"
@@ -139,7 +111,7 @@ optimizer = optim.Adam(model.parameters(), lr=lr)
 logger = Logger()
 
 epochs = int(args.epochs)
-train(model, train_loader, val_loader, optimizer, logger, num_epochs=epochs)
+train(model, train_loader, val_loader, optimizer, logger, criterion=criterion, num_epochs=epochs)
 
 
 # save the model
