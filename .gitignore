@@ -4,3 +4,4 @@
 __pycache__/
 *.run
 kaggle.json
+models/
