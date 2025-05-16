@@ -7,9 +7,9 @@
 ---
 ## Milestone 2: 
 In the milestone, we have the depth and semantic masks as additional data to improve our model. 
-## Model Architecture
+### Model Architecture
 
-## Experiments
+### Experiments
 We tried many different improvements, with varying success. Namely:
 - Transformer-based trajectory decoder
 - Multi-modal trajectory prediction with a mixture of experts
