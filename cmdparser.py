@@ -9,3 +9,5 @@ parser.add_argument('--epochs', type=float, default=50, help="Number of epochs, 
 parser.add_argument('--bs', type=int, default=32, help="Batch size, default is 32")
 parser.add_argument('--ego', action='store_true', default=False, help="Wether to encode the ego state, default is False")
 parser.add_argument('--plot', action='store_true', default=False, help="Wether to save training plots, default is False")
+parser.add_argument('--depth', action='store_true', default=False, help="Wether to use the depth map, default is False")
+parser.add_argument('--ld', type=float, default=0.1, help="Lambda depth, default is 0.1")
