@@ -5,6 +5,26 @@
 **Team: Drunk Drivers**
 
 ---
+## Milestone 2: 
+In the milestone, we have the depth and semantic masks as additional data to improve our model. 
+## Model Architecture
+
+## Experiments
+We tried many different improvements, with varying success. Namely:
+- Transformer-based trajectory decoder
+- Multi-modal trajectory prediction with a mixture of experts
+- Spatial-temporal attention mechanism
+- Feature enhancement module (local and global pathways)
+- Velocity-aware trajectory prediction with physics-based integration
+- Temporal dropout and enhanced regularisation techniques
+- Modified learning rate schedules and optimisation algorithms
+- RobustTrajectoryPredictor with dynamic input handling
+- Trajectory post processing
+- Using the ground truths as extra channels in the image as a sanity check
+- Using a Cosine Schedular with warmup
+
+
+
 
 ## Milestone 1: Basic End-to-End Planner
 
