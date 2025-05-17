@@ -38,7 +38,7 @@ Cross-Entropy Loss for the auxiliary semantic prediction task, which measures th
 The total loss is a weighted sum of these components:
 ```total_loss = traj_loss + depth_weight * depth_loss + sem_weight * sem_loss```
 
-Where ```depth_weight``` and ```sem_weight``` are hyperparameters that control the contribution of each auxiliary task. These weights can be adjusted through command-line arguments, allowing for experimentation with different training configurations. Setting either weight to zero effectively disables the corresponding auxiliary task.
+Where ```depth_weight``` and ```sem_weight``` are hyperparameters that control the contribution of each auxiliary task. These weights can be adjusted through command-line arguments, allowing for experimentation with different training configurations. Setting either weight to zero effectively disables the corresponding auxiliary task. The optimal weights were found with a **grid search**, where we trained with the weights equal to 0.1, 0.5, 1 and 5. 
 
 ### Learning Rate
 The learning rate is a configurable hyperparameter (via command-line argument ``` --lr```), allowing for experimentation with different optimisation speeds, we primarily used ```lr = 1e-3```. A small weight decay of 1e-5 is applied to provide regularisation and prevent overfitting by penalising large weights in the model.
