@@ -10,9 +10,8 @@ def generate_csv(model, device, test_loader, save_dir, name):
         for batch in test_loader:
             camera = batch['camera'].to(device)
             history = batch['history'].to(device)
-            dep = batch['depth'].to(device)
 
-            pred_future, _ = model(camera, history, dep)
+            pred_future, _, _ = model(camera, history)
             all_plans.append(pred_future.cpu().numpy()[..., :2])
     all_plans = np.concatenate(all_plans, axis=0)
 

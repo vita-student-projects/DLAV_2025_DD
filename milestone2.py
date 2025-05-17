@@ -67,7 +67,7 @@ logger = Logger()
 
 # Train the model
 epochs = int(args.epochs)
-best_ade, best_model_dict = train(model, train_loader, val_loader, optimizer, 
+best_ade, best_model_dict = train(model, logger, train_loader, val_loader, optimizer, 
     num_epochs=epochs,
     use_depth_aux=use_depth_aux,
     use_semantic_aux=use_semantic_aux, 

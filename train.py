@@ -3,14 +3,14 @@ import torch
 import torch.nn.functional as F
 import torch.nn as nn
 
-def train_one_epoch(model, train_loader, optimizer, device, train_loss_fn, depth_loss_fn, 
+def train_one_epoch(epoch, model, logger, train_loader, optimizer, device, train_loss_fn, depth_loss_fn, 
                     sem_loss_fn, use_depth_aux=False, use_semantic_aux=False,
                     depth_loss_weight=0.0, sem_loss_weight=0.0):
     model.train()
     train_loss = 0.0
     depth_loss = 0.0
     sem_loss = 0.0
-    for batch in train_loader:
+    for idx, batch in enumerate(train_loader):
         cam, hist, fut, dep, sem = [batch[k].to(device) for k in ['camera', 'history', 'future', 'depth', 'semantic']]
         optimizer.zero_grad()
         fut_pred, dep_pred, sem_pred = model(cam, hist)
@@ -25,6 +25,23 @@ def train_one_epoch(model, train_loader, optimizer, device, train_loss_fn, depth
             s_loss = sem_loss_fn(sem_pred, sem.long())
             loss += sem_loss_weight * s_loss
             sem_loss += s_loss
+
+        if idx % 10 == 0:
+            ADE = torch.norm(fut_pred[:, :, :2] - fut[:, :, :2], p=2, dim=-1).mean()
+            FDE = torch.norm(fut_pred[:, -1, :2] - fut[:, -1, :2], p=2, dim=-1).mean()
+
+            metrics = {
+                'loss': loss.item(),
+                'ADE': ADE.item(),
+                'FDE': FDE.item()
+            }
+
+            if use_depth_aux:
+                metrics['depth_loss'] = d_loss.item()
+            if use_semantic_aux:
+                metrics['semantic_loss'] = s_loss.item()
+
+            logger.log(step=epoch * len(train_loader) + idx, **metrics)
 
         loss.backward()
         optimizer.step()
@@ -67,7 +84,7 @@ def validate(model, val_loader, device, loss_fn):
 
     return ade_avg, fde_avg, mse_avg
 
-def train(model, train_loader, val_loader, optimizer, num_epochs=50, use_depth_aux=False, use_semantic_aux=False,
+def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, use_depth_aux=False, use_semantic_aux=False,
           train_loss_fn=nn.MSELoss(), depth_loss_fn=nn.L1Loss(), sem_loss_fn=nn.CrossEntropyLoss(),
           depth_loss_weight=0.0, sem_loss_weight=0.0):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -79,7 +96,9 @@ def train(model, train_loader, val_loader, optimizer, num_epochs=50, use_depth_a
 
     for epoch in range(num_epochs):
         train_loss, depth_loss, sem_loss = train_one_epoch(
-            model, 
+            epoch,
+            model,
+            logger, 
             train_loader, 
             optimizer, 
             device, 
@@ -98,5 +117,6 @@ def train(model, train_loader, val_loader, optimizer, num_epochs=50, use_depth_a
 
         if ade < best_ade:
             best_model = model.state_dict()
+            best_ade = ade
 
     return best_ade, best_model
