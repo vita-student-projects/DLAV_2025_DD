@@ -7,7 +7,24 @@
 ---
 ## Milestone 2: 
 In the milestone, we have the depth and semantic masks as additional data to improve our model. 
+
 ### Model Architecture
+
+Our new model builds on the previous model from milestone 1. The main difference are the auxiliary depth and semantic map predictions. Let's first review the differences with the phase 1 model.
+
+- **Image Encoder**: Our model for phase 1 uses a ResNet18. We wanted to switch to something bigger but it did not yield any significant improvement and made the training slower so we kept it for phase 2.
+
+- **History Encoder**: Our model for phase 1 did not use an history encoder, it was only flattened. Here, we decided to  **TODO**
+
+- **Ego Encoder**: Phase 1 model was using the last position of the vehicule as Ego position and was encoded using a simple two layers linear model. For phase 2, we decided **TODO**
+
+- **Decoder**: Phase 1 model was using a simple 3-layered MLP. We decide that **TODO**
+
+Let's now take a look and the depth and semantic decoders. 
+
+
+
+
 
 ### Experiments
 We tried many different improvements, with varying success. Namely:
@@ -24,59 +41,22 @@ We tried many different improvements, with varying success. Namely:
 - Using a Cosine Schedular with warmup
 
 
-
-
-## Milestone 1: Basic End-to-End Planner
-
-We implemented an end-to-end model to predict future trajectories using the following inputs:
-- RGB camera image  
-- Driving command  
-- Vehicle’s motion history (`sdc_history_feature`)  
-
-### Model Architecture
-
-The simplest approach turned out to be the most effective for our use case. We used ResNet-18 to encode the camera image, removing its final layer to extract features. The vehicle’s motion history was not encoded, but rather directly concatenated with the image features. We also added the most recent position as an ego state to represent instantaneous speed.
-
-The combined feature vector was passed through a two-layer linear model, achieving an Average Displacement Error (ADE) of **1.70** in the Kaggle competition.
-
-### Experiments
-
-We explored more complex architectures, including a sequence-to-sequence model using recurrent neural networks. In this setup:
-- Position history was encoded using an LSTM.  
-- Image features were extracted via a CNN.  
-- The LSTM’s final hidden state was concatenated with the image embedding.  
-- The resulting vector was passed through a decoder LSTM to predict future trajectories.  
-
-We also experimented with residual connections, adding the image context to various parts of the decoder (input, hidden state, cell state). Despite many variations, we were unable to achieve an ADE below 2. We suspect the model’s depth, combined with limited training data, led to underperformance.
-
-### Alternative Strategy: "Winner-Takes-All"
-
-We tried a "winner-takes-all" approach where the model outputs multiple potential trajectories and is trained using the one with the lowest error. This method did not improve performance, likely due to incorrect implementation, which we were unable to resolve in time.
-
-### Hyperparameter Tuning
-
-We performed a grid search over the following settings:
-- **Batch size:** 16, 32, 64  
-- **Learning rate:** 0.001, 0.01, 0.1  
-- **Loss function:** MSE, Cross-Entropy, Binary Cross-Entropy  
-- **History encoder:** None, LSTM, GRU  
-- **Ego encoder:** None, two-layer linear model  
-
-All results were saved locally. However, the grid search takes too long to complete, and we couldn’t obtain final results before the milestone deadline.
-
----
-
 ## Usage Instructions
 
 ### Training
 
-To train the model, run the `milestone1.py` script. It requires the dependencies listed in `requirements.txt`. You can view available parameters by running the script with `--help`.
+To train the model, run the `milestone2.py` script. It requires the dependencies listed in `requirements.txt`. You can view available parameters by running the script with `--help`.
+
+This script generates:
+- a CSV file for the submission
+- The best model parameters,
+- The last model parameters,
+- The metrics for each epoch
+- Plots of the loss
+
+These are all saved in the folder `models/model_name` where `model_name` is the name of the model given as input to the script.
 
 ### Inference / CSV Generation
 
-To generate a CSV file for the competition:
-- Use the `generatecsv.py` script.  
-- Specify the path to a trained `.pth` model file.  
-- Parameter options are similar to those used during training.
+The `milestone2.py` script generates a CSV file ready to be submitted.
 
-Run with `--help` for detailed usage instructions.
