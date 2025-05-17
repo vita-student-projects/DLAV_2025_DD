@@ -28,7 +28,7 @@ class DrivingDataset(Dataset):
         camera = torch.FloatTensor(data['camera']).permute(2, 0, 1) / 255.0
         history = torch.FloatTensor(data['sdc_history_feature'])
 
-        depth = torch.FloatTensor(data['depth'])
+        depth = torch.FloatTensor(data['depth']) / 255.0
         sem  = torch.FloatTensor(data['semantic_label'])
 
         if not self.test:
