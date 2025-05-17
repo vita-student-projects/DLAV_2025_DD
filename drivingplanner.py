@@ -71,7 +71,7 @@ class DrivingPlanner(nn.Module):
         self.use_depth_aux = use_depth_aux
         self.use_semantic_aux = use_semantic_aux
 
-        model = models.resnet50(pretrained=models.ResNet50_Weights.DEFAULT)
+        model = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
         self.cnn_backbone = nn.Sequential(*list(model.children())[:-2])
         cnn_backbone_out_dim = model.fc.in_features
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))

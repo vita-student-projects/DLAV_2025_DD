@@ -11,7 +11,7 @@ def train_one_epoch(model, train_loader, optimizer, device, train_loss_fn, depth
     depth_loss = 0.0
     sem_loss = 0.0
     for batch in train_loader:
-        cam, hist, fut, dep, sem = [batch[k].to(device) for k in ['camera', 'history', 'future', 'depth', 'semantic_label']]
+        cam, hist, fut, dep, sem = [batch[k].to(device) for k in ['camera', 'history', 'future', 'depth', 'semantic']]
         optimizer.zero_grad()
         fut_pred, dep_pred, sem_pred = model(cam, hist)
         traj_loss = train_loss_fn(fut_pred, fut)
@@ -23,7 +23,6 @@ def train_one_epoch(model, train_loader, optimizer, device, train_loss_fn, depth
             depth_loss += d_loss
         if use_semantic_aux:
             s_loss = sem_loss_fn(sem_pred, sem.long())
-            print(sem_pred.shape, sem.shape)
             loss += sem_loss_weight * s_loss
             sem_loss += s_loss
 

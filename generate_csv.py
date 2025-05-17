@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import os
+import pandas as pd
 
 def generate_csv(model, device, test_loader, save_dir, name):
     model.eval()
