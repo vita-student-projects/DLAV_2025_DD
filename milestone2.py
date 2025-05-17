@@ -67,17 +67,16 @@ logger = Logger()
 
 # Train the model
 epochs = int(args.epochs)
-ld = float(args.ld)
 best_ade, best_model_dict = train(model, train_loader, val_loader, optimizer, 
-      num_epochs=epochs,
-      use_depth_aux=use_depth_aux,
-      use_semantic_aux=use_semantic_aux, 
-      train_loss_fn=train_loss_fn,
-      depth_loss_fn=depth_loss_fn,
-      sem_loss_fn=sem_loss_fn,
-      depth_loss_weight=depth_weight,
-      sem_loss_weight=sem_weight
-      )
+    num_epochs=epochs,
+    use_depth_aux=use_depth_aux,
+    use_semantic_aux=use_semantic_aux, 
+    train_loss_fn=train_loss_fn,
+    depth_loss_fn=depth_loss_fn,
+    sem_loss_fn=sem_loss_fn,
+    depth_loss_weight=depth_weight,
+    sem_loss_weight=sem_weight
+)
 
 print(f"Training's best ADE: {best_ade:.4f}")
 
