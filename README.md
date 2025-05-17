@@ -40,6 +40,8 @@ The total loss is a weighted sum of these components:
 
 Where ```depth_weight``` and ```sem_weight``` are hyperparameters that control the contribution of each auxiliary task. These weights can be adjusted through command-line arguments, allowing for experimentation with different training configurations. Setting either weight to zero effectively disables the corresponding auxiliary task.
 
+### Learning Rate
+The learning rate is a configurable hyperparameter (via command-line argument ``` --lr```), allowing for experimentation with different optimisation speeds, we primarily used ```lr = 1e-3```. A small weight decay of 1e-5 is applied to provide regularisation and prevent overfitting by penalising large weights in the model.
 
 ### Experiments
 We tried many different improvements, with varying success. Namely:
