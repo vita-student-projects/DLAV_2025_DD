@@ -1,4 +1,5 @@
 *.pkl
+*.zip
 .venv
 *.out
 __pycache__/
