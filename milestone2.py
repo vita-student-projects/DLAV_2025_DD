@@ -87,7 +87,7 @@ logger.plot_metrics(save_dir)
 # Validate the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ade, fde, mse = validate(model, val_loader, device, train_loss_fn)
-print(f"Validation results for model without depth auxiliary loss: ADE: {ade:.4f}, FDE: {fde:.4f}, Traj MSE: {mse:.6f}")
+print(f"Validation results for model: ADE: {ade:.4f}, FDE: {fde:.4f}, Traj MSE: {mse:.6f}")
 
 # Save the last and best model
 save_path = os.path.join(save_dir, args.name + "_best.pth")
@@ -96,6 +96,6 @@ save_path = os.path.join(save_dir, args.name + "_last.pth")
 torch.save(model.state_dict(), save_path)
 
 # Generate the test CSV for kaggle
-best_model = DrivingPlanner()
+best_model = DrivingPlanner(use_depth_aux=use_depth_aux, use_semantic_aux=use_semantic_aux)
 best_model.load_state_dict(best_model_dict)
-generate_csv(model, device, test_loader, save_dir, args.name)
+generate_csv(best_model, device, test_loader, save_dir, args.name)
