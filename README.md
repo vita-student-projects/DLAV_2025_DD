@@ -6,7 +6,7 @@
 
 ---
 ## Milestone 2: 
-In the milestone, we have the depth and semantic masks as additional data to improve our model. 
+For this milestone, we have the depth and semantic masks as additional data to improve our model. 
 
 ### Model Architecture
 - #### Image Encoder
@@ -39,7 +39,7 @@ We tried many different improvements, with varying success. Namely:
 * Trajectory post-processing
 * Using the ground truths as extra channels in the image as a sanity check
 * Using a Cosine Schedular with warmup
-* 
+  
 Most of these improvements were only briefly explored, and if there were no immediate improvements, they were dropped.
 
 ## Usage Instructions
