@@ -58,6 +58,11 @@ We tried many different improvements, with varying success. Namely:
   
 Most of these improvements were only briefly explored, and if there were no immediate improvements, they were dropped.
 
+### Last-minute tests
+In the final hours of this assignment, we conducted additional testing on our model and managed to achieve a validation ADE score of 1.64. However, the training loss plots reveal that while the loss initially decreases as expected, it subsequently oscillates (gradually decreasing but with noticeable fluctuations, see below). This behaviour suggests that incorporating a learning rate scheduler could help stabilize the training process. Unfortunately, due to time constraints, we weren’t able to implement this adjustment for the current milestone, but we plan to address it in Milestone 3.
+
+![metrics_log_plot](https://github.com/user-attachments/assets/9b208fa0-ae98-40fd-ac1b-46e14838f1a7)
+
 ## Usage Instructions
 
 ### Training
