@@ -25,6 +25,20 @@ Contains 5 upsampling blocks that progressively increase spatial resolution whil
 - #### Semantic Decoder
 It mirrors the architecture of the depth decoder but outputs 15 semantic classes at 200×300 resolution. This enables the model to distinguish between different elements in the driving scene (road, vehicles, pedestrians, etc.).
 
+### Loss Functions
+The model employs a multi-task learning approach with weighted loss components:
+
+* #### Trajectory Prediction Loss
+Mean Squared Error (MSE) between predicted and ground truth trajectories, serving as the primary optimisation objective.
+* #### Depth Estimation Loss
+L1 Loss (mean absolute error) for the auxiliary depth prediction task, which penalises absolute differences between predicted and ground truth depth values.
+* #### Semantic Segmentation Loss
+Cross-Entropy Loss for the auxiliary semantic prediction task, which measures the performance of the model in classifying each pixel into the correct semantic category.
+
+The total loss is a weighted sum of these components:
+```total_loss = traj_loss + depth_weight * depth_loss + sem_weight * sem_loss```
+
+Where ```depth_weight``` and ```sem_weight``` are hyperparameters that control the contribution of each auxiliary task. These weights can be adjusted through command-line arguments, allowing for experimentation with different training configurations. Setting either weight to zero effectively disables the corresponding auxiliary task.
 
 
 ### Experiments
