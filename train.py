@@ -6,6 +6,9 @@ def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, cri
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
+    best_model_dict = None
+    best_ade = float('inf')
+
     for epoch in range(num_epochs):
         # Training
         model.train()
@@ -22,7 +25,14 @@ def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, cri
             optimizer.step()
 
             if idx % 10 == 0:
-                logger.log(step=epoch * len(train_loader) + idx, loss=loss.item())
+                ade = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
+                fde = torch.norm(pred_future[:, -1, :2] - future[:, -1, :2], p=2, dim=-1).mean()
+                metrics = {
+                    'loss': loss.item(),
+                    'ADE': ade.item(),
+                    'FDE': fde.item()
+                }
+                logger.log(step=epoch * len(train_loader) + idx, **metrics)
             train_loss += loss.item()
 
         # Validation
@@ -42,4 +52,11 @@ def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, cri
                 fde_all.append(FDE.item())
                 val_loss += loss.item()
 
+        # Save the best model
+        if np.mean(ade_all) < best_ade:
+            best_ade = np.mean(ade_all)
+            best_model_dict = model.state_dict()
+
         print(f'Epoch {epoch+1}/{num_epochs} | Train Loss: {train_loss/len(train_loader):.4f} | Val Loss: {val_loss/len(val_loader):.4f} | ADE: {np.mean(ade_all):.4f} | FDE: {np.mean(fde_all):.4f}')
+    
+    return best_ade, best_model_dict
