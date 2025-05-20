@@ -1,13 +1,12 @@
 import torch
 from torch.utils.data import Dataset
 import pickle
-from torchvision import transforms as v2
 import numpy as np
 
 class DrivingDataset(Dataset):
 
     def flipdata(camera, history, future):
-        camera_flipped = v2.RandomHorizontalFlip(p=1)(camera)
+        camera_flipped = torch.flip(camera, [2])
 
         history_flipped = history
         history_flipped[:,1] = -history_flipped[:,1]
