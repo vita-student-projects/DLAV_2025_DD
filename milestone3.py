@@ -16,7 +16,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import os
 
-from train import train, validate
+from train import train
 from generate_csv import generate_csv
 
 # Supress dataloader user warnings
@@ -78,10 +78,7 @@ print(f"Training's best ADE: {best_ade:.4f}")
 logger.to_csv(save_dir)
 logger.plot_metrics(save_dir)
 
-# Validate the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-ade, fde, mse = validate(model, val_loader, device, criterion)
-print(f"Validation results: ADE: {ade:.4f}, FDE: {fde:.4f}, Traj MSE: {mse:.6f}")
 
 # Save the last and best model
 best_model_path = os.path.join(save_dir, args.name + "_best.pth")
