@@ -1,31 +1,28 @@
 import torch
 from torch.utils.data import Dataset
 import pickle
-from torchvision.transforms import v2
+from torchvision import transforms as v2
 import numpy as np
 
-
 class DrivingDataset(Dataset):
-    def __init__(self, file_list, test=False):
+
+    def flipdata(camera, history, future):
+        camera_flipped = v2.RandomHorizontalFlip(p=1)(camera)
+
+        history_flipped = history
+        history_flipped[:,1] = -history_flipped[:,1]
+        history_flipped[:,2] = (history_flipped[:, 2] + np.pi) % (2 * np.pi) - np.pi
+        
+        future_flipped = future
+        future_flipped[:,1] = -future_flipped[:,1]
+        future_flipped[:,2] = (future_flipped[:, 2] + np.pi) % (2 * np.pi) - np.pi
+        
+        return camera_flipped, history_flipped, future_flipped
+
+    def __init__(self, file_list, test=False, flip=False):
         self.samples = file_list
         self.test = test
-    
-    def flipdata(camera, history, future):
-      camera_flipped = v2.RandomHorizontalFlip(p=1)(camera)
-      camera_out = torch.cat((camera,camera_flipped),0)
-    
-      history_flipped = history
-      history_flipped[:,1] = -history_flipped[:,1]
-      history_flipped[:,2] = (history_flipped[:, 2] + np.pi) % (2 * np.pi) - np.pi
-      history_out = torch.cat((history, history_flipped),0)
-      
-      future_flipped = future
-      future_flipped[:,1] = -future_flipped[:,1]
-      future_flipped[:,2] = (future_flipped[:, 2] + np.pi) % (2 * np.pi) - np.pi
-      future_out = torch.cat((future, future_flipped,0))
-      
-      return camera_out, history_out, future_out
-       
+        self.flip = flip
 
     def __len__(self):
         return len(self.samples)
@@ -40,7 +37,8 @@ class DrivingDataset(Dataset):
         history = torch.FloatTensor(data['sdc_history_feature'])
         if not self.test:
           future = torch.FloatTensor(data['sdc_future_feature'])
-          camera, history, future = DrivingDataset.flipdata(camera, history, future)
+          if self.flip:
+            camera, history, future = DrivingDataset.flipdata(camera, history, future)
           return {
             'camera': camera,
             'history': history,
@@ -51,3 +49,4 @@ class DrivingDataset(Dataset):
             'camera': camera,
             'history': history
           }
+

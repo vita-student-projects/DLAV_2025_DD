@@ -3,6 +3,7 @@ from drivingplanner import DrivingPlanner
 from logger import Logger
 from loader import DrivingDataset
 from cmdparser import parser
+from torch.optim.lr_scheduler import CosineAnnealingLR
 
 import numpy as np
 
@@ -37,6 +38,8 @@ val_files = val_real_files[500:]
 test_files = [os.path.join(test_data_dir, fn) for fn in sorted([f for f in os.listdir(test_data_dir) if f.endswith(".pkl")], key=lambda fn: int(os.path.splitext(fn)[0]))]
 
 train_dataset = DrivingDataset(train_files_mixed)
+train_dataset_flipped = DrivingDataset(train_files_mixed, flip=True)
+train_dataset = torch.utils.data.ConcatDataset([train_dataset, train_dataset_flipped])
 val_dataset = DrivingDataset(val_files)
 test_dataset = DrivingDataset(test_files, test=True)
 
@@ -54,6 +57,8 @@ model = DrivingPlanner(use_depth_aux=False, use_semantic_aux=False)
 
 lr = float(args.lr)
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
+
+scheduler = CosineAnnealingLR(optimizer, T_max=10, eta_min=1e-6)
 
 # Define the loss functions
 criterion = nn.MSELoss()

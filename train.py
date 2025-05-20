@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, criterion=nn.MSELoss()):
+def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, criterion=nn.MSELoss(), scheduler=None):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -23,6 +23,8 @@ def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, cri
             loss = criterion(pred_future[..., :2], future[..., :2])
             loss.backward()
             optimizer.step()
+            if scheduler:
+                scheduler.step()
 
             if idx % 10 == 0:
                 ade = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
