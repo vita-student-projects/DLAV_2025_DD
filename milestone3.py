@@ -27,20 +27,21 @@ args = parser.parse_args()
 
 # Load the datasets
 train_data_dir = "train"
-val_data_dir = "val"
-test_data_dir = "test_public"
+real_data_dir = "val_real"
+test_data_dir = "test_public_real"
 
 train_files = [os.path.join(train_data_dir, f) for f in os.listdir(train_data_dir) if f.endswith('.pkl')]
-val_files = [os.path.join(val_data_dir, f) for f in os.listdir(val_data_dir) if f.endswith('.pkl')]
+val_real_files = [os.path.join(real_data_dir, f) for f in os.listdir(real_data_dir) if f.endswith('.pkl')]
+train_files_mixed = train_files + val_real_files[:500]
+val_files = val_real_files[500:]
 test_files = [os.path.join(test_data_dir, fn) for fn in sorted([f for f in os.listdir(test_data_dir) if f.endswith(".pkl")], key=lambda fn: int(os.path.splitext(fn)[0]))]
 
-train_dataset = DrivingDataset(train_files)
+train_dataset = DrivingDataset(train_files_mixed)
 val_dataset = DrivingDataset(val_files)
 test_dataset = DrivingDataset(test_files, test=True)
 
-batch_size = int(args.bs)
-train_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=2, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=batch_size, num_workers=2)
+train_loader = DataLoader(train_dataset, batch_size=32, num_workers=2, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32, num_workers=2)
 test_loader = DataLoader(test_dataset, batch_size=250, num_workers=2)
 
 # Create save directory for this train
@@ -49,33 +50,26 @@ os.makedirs(save_dir, exist_ok=True)
 print(f"Created save dir: {save_dir}")
 
 # Create the model
-depth_weight = float(args.depth)
-sem_weight = float(args.sem)
-use_depth_aux = depth_weight > 0.0
-use_semantic_aux  = sem_weight > 0.0
-model = DrivingPlanner(use_depth_aux=use_depth_aux, use_semantic_aux=use_semantic_aux)
+model = DrivingPlanner(use_depth_aux=False, use_semantic_aux=False)
 
 lr = float(args.lr)
 optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-5)
 
 # Define the loss functions
-train_loss_fn = nn.MSELoss()
-depth_loss_fn = nn.L1Loss()
-sem_loss_fn = nn.CrossEntropyLoss()
+criterion = nn.MSELoss()
 
 logger = Logger()
 
 # Train the model
 epochs = int(args.epochs)
-best_ade, best_model_dict = train(model, logger, train_loader, val_loader, optimizer, 
+best_ade, best_model_dict = train(
+    model, 
+    logger, 
+    train_loader, 
+    val_loader, 
+    optimizer, 
     num_epochs=epochs,
-    use_depth_aux=use_depth_aux,
-    use_semantic_aux=use_semantic_aux, 
-    train_loss_fn=train_loss_fn,
-    depth_loss_fn=depth_loss_fn,
-    sem_loss_fn=sem_loss_fn,
-    depth_loss_weight=depth_weight,
-    sem_loss_weight=sem_weight
+    criterion=criterion,
 )
 
 print(f"Training's best ADE: {best_ade:.4f}")
@@ -86,7 +80,7 @@ logger.plot_metrics(save_dir)
 
 # Validate the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-ade, fde, mse = validate(model, val_loader, device, train_loss_fn)
+ade, fde, mse = validate(model, val_loader, device, criterion)
 print(f"Validation results: ADE: {ade:.4f}, FDE: {fde:.4f}, Traj MSE: {mse:.6f}")
 
 # Save the last and best model
@@ -96,7 +90,7 @@ last_model_path = os.path.join(save_dir, args.name + "_last.pth")
 torch.save(model.state_dict(), last_model_path)
 
 # Generate the test CSV for kaggle
-best_model = DrivingPlanner(use_depth_aux=use_depth_aux, use_semantic_aux=use_semantic_aux)
+best_model = DrivingPlanner(use_depth_aux=False, use_semantic_aux=False)
 best_model.load_state_dict(torch.load(best_model_path))
 best_model.to(device)
-generate_csv(best_model, device, test_loader, save_dir, args.name)
+generate_csv(best_model, device, test_loader, save_dir)

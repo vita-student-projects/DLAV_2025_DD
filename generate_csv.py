@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 
-def generate_csv(model, device, test_loader, save_dir, name):
+def generate_csv(model, device, test_loader, save_dir):
     model.eval()
     all_plans = []
     with torch.no_grad():
@@ -35,7 +35,7 @@ def generate_csv(model, device, test_loader, save_dir, name):
     df_xy.columns = new_col_names
 
     # Save to CSV
-    save_path = os.path.join(save_dir, name+'.csb')
+    save_path = os.path.join(save_dir, "submission_phase3.csv")
     df_xy.to_csv(save_path, index=False)
 
     print(f"Shape of df_xy: {df_xy.shape}")

@@ -3,9 +3,9 @@ import zipfile
 import sys
 
 
-train_zip = "train.zip"
-val_zip = "val.zip"
-test_zip = "test_public.zip"
+train_zip = "dlav_train.zip"
+val_zip = "dlav_val_real.zip"
+test_zip = "test_public_real.zip"
 
 
 # Check if the argument passed says "download"
@@ -13,10 +13,10 @@ if "download" in sys.argv:
     download_url = f"https://drive.google.com/uc?id=1YkGwaxBKNiYL2nq--cB6WMmYGzRmRKVr"
     gdown.download(download_url, train_zip, quiet=False)  # Downloads the file to your drive
 
-    download_url = "https://drive.google.com/uc?id=1wtmT_vH9mMUNOwrNOMFP6WFw6e8rbOdu"
+    download_url = "https://drive.google.com/uc?id=17DREGym_-v23f_qbkMHr7vJstbuTt0if"
     gdown.download(download_url, val_zip, quiet=False)
 
-    download_url = "https://drive.google.com/uc?id=1G9xGE7s-Ikvvc2-LZTUyuzhWAlNdLTLV"
+    download_url = "https://drive.google.com/uc?id=1_l6cui0pCJ_caixN0uTkkUOfu6ICO8u5"
     gdown.download(download_url, test_zip, quiet=False)
 
 with zipfile.ZipFile(train_zip, 'r') as zip_ref:  # Extracts the downloaded zip file
