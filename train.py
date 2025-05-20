@@ -35,7 +35,7 @@ def validate(model, val_loader, device, criterion):
             history = batch['history'].to(device)
             future = batch['future'].to(device)
 
-            pred_future = model(camera, history)
+            pred_future, _, _ = model(camera, history)
             loss = criterion(pred_future, future)
             ADE = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
             FDE = torch.norm(pred_future[:, -1, :2] - future[:, -1, :2], p=2, dim=-1).mean()

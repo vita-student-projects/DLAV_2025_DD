@@ -7,3 +7,4 @@ __pycache__/
 kaggle.json
 models/
 *.csv
+__MACOSX/
