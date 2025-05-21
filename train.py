@@ -24,7 +24,7 @@ def train(model, logger, train_loader, val_loader, optimizer, num_epochs=50, cri
             loss.backward()
             optimizer.step()
             if scheduler:
-                scheduler.step()
+                scheduler.step(loss)
 
             if idx % 10 == 0:
                 ade = torch.norm(pred_future[:, :, :2] - future[:, :, :2], p=2, dim=-1).mean()
