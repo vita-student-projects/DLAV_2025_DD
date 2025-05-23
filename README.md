@@ -6,73 +6,13 @@
 
 ---
 ## Milestone 3 
-For this milestone, we are predicting on real-world images. Since we do not have depth or semantic masks, we reused our Milestone 1 code. Just with the initial code, we achieved the milestone goal. In order to further improve our prediction, we upgraded the Resnet to a Resnet50, and flipped the images and paths to double our dataset size. We also tried different optimisers (SGD and Adam) and schedulers (cosine and reduce lr on plateau). We found that the best combination was Adam with a cosine scheduler at 200 epochs, achieving 1.532 of ADE on the validation set. We also tried other augmentations but didn't see any significant improvement. 
-
-## Milestone 2: 
-For this milestone, we have the depth and semantic masks as additional data to improve our model. 
-
-### Model Architecture
-- #### Image Encoder
-Uses a ResNet50 backbone pretrained on ImageNet to extract visual features from camera input. The network removes the classification head and applies adaptive average pooling to obtain a fixed-size feature representation, followed by a fully-connected layer that projects features to 512 dimensions.
-- #### History Encoder
-Processes the vehicle's past trajectory through a 5-layer MLP architecture (63→512→256→256→128→128) with ReLU activations between layers. This gradually refines the temporal information into a compact 128-dimensional feature vector capturing motion patterns.
-- #### Trajectory Decoder
-Combines the visual (512-dim) and historical (128-dim) features through concatenation, then processes this 640-dimensional vector through a 3-layer MLP (640→512→256→180) to predict the vehicle's future trajectory for 60 timesteps, each represented by 3 values.
-
-### Auxiliary Decoders
-The model supports multi-task learning through two auxiliary decoders that operate on the raw CNN features (2048 channels) before pooling:
-
-- #### Depth Decoder
-Contains 5 upsampling blocks that progressively increase spatial resolution while reducing channel dimension (2048→512→256→128→64→32). Each block includes bilinear upsampling, convolution, batch normalisation, and ReLU activation. The final layer produces a single-channel depth map at 200×300 resolution.
-
-- #### Semantic Decoder
-It mirrors the architecture of the depth decoder but outputs 15 semantic classes at 200×300 resolution. This enables the model to distinguish between different elements in the driving scene (road, vehicles, pedestrians, etc.).
-
-### Loss Functions
-The model employs a multi-task learning approach with weighted loss components:
-
-* #### Trajectory Prediction Loss
-Mean Squared Error (MSE) between predicted and ground truth trajectories, serving as the primary optimisation objective.
-* #### Depth Estimation Loss
-L1 Loss (mean absolute error) for the auxiliary depth prediction task, which penalises absolute differences between predicted and ground truth depth values.
-* #### Semantic Segmentation Loss
-Cross-Entropy Loss for the auxiliary semantic prediction task, which measures the performance of the model in classifying each pixel into the correct semantic category.
-
-The total loss is a weighted sum of these components:
-```total_loss = traj_loss + depth_weight * depth_loss + sem_weight * sem_loss```
-
-Where ```depth_weight``` and ```sem_weight``` are hyperparameters that control the contribution of each auxiliary task. These weights can be adjusted through command-line arguments, allowing for experimentation with different training configurations. Setting either weight to zero effectively disables the corresponding auxiliary task. The optimal weights were found with a **grid search**, where we trained with the weights equal to 0.1, 0.5, 1 and 5. 
-
-### Learning Rate
-The learning rate is a configurable hyperparameter (via command-line argument ``` --lr```), allowing for experimentation with different optimisation speeds, we primarily used ```lr = 1e-3```. A small weight decay of 1e-5 is applied to provide regularisation and prevent overfitting by penalising large weights in the model.
-
-### Experiments
-We tried many different improvements, with varying success. Namely:
-* Transformer-based trajectory decoder
-* Multi-modal trajectory prediction with a mixture of experts
-* Spatial-temporal attention mechanism
-* Feature enhancement module (local and global pathways)
-* Velocity-aware trajectory prediction with physics-based integration
-* Temporal dropout and enhanced regularisation techniques
-* Modified learning rate schedules and optimisation algorithms
-* Trajectory post-processing
-* Using the ground truths as extra channels in the image as a sanity check
-* Using a Cosine Schedular with warmup
-  
-Most of these improvements were only briefly explored, and if there were no immediate improvements, they were dropped.
-
-### Last-minute tests
-In the final hours of this assignment, we conducted additional testing on our model and managed to achieve a validation ADE score of 1.64. However, the training loss plots reveal that while the loss initially decreases as expected, it subsequently oscillates (gradually decreasing but with noticeable fluctuations, see below). This behaviour suggests that incorporating a learning rate scheduler could help stabilize the training process. Unfortunately, due to time constraints, we weren’t able to implement this adjustment for the current milestone, but we plan to address it in Milestone 3.
-
-
-<img src="https://github.com/user-attachments/assets/9b208fa0-ae98-40fd-ac1b-46e14838f1a7" width="400"/>
-
+For this milestone, we are predicting on real-world images. Since we do not have depth or semantic masks, we reused our Milestone 1 code. Just with the initial code, we achieved the milestone goal. In order to further improve our prediction, we upgraded the Resnet to a Resnet50, and flipped the images and paths to double our dataset size. We also tried different optimisers (SGD and Adam) and schedulers (cosine and reduce lr on plateau). We found that the best combination was Adam with a cosine scheduler at 200 epochs, achieving 1.532 ADE on the validation set. We also tried other augmentations but didn't see any significant improvement. 
 
 ## Usage Instructions
 
 ### Training
 
-To train the model, run the `milestone2.py` script. It requires the dependencies listed in `requirements.txt`. You can view available parameters by running the script with `--help`.
+To train the model, run the `milestone3.py` script. It requires the dependencies listed in `requirements.txt`. You can view available parameters by running the script with `--help`.
 
 This script generates:
 - a CSV file for the submission
@@ -85,5 +25,5 @@ These are all saved in the folder `models/model_name` where `model_name` is the 
 
 ### Inference / CSV Generation
 
-The `milestone2.py` script generates a CSV file ready to be submitted.
+The `milestone3.py` script generates a CSV file ready to be submitted.
 
