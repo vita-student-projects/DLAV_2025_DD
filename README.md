@@ -5,29 +5,6 @@
 **Team: Drunk Drivers**
 
 ---
-## Milestone 3 
-For this milestone, we are predicting on real-world images. Since we do not have depth or semantic masks, we reused our Milestone 1 code. Just with the initial code, we achieved the milestone goal. In order to further improve our prediction, we upgraded the Resnet to a Resnet50, and flipped the images and paths to double our dataset size. We also tried different optimisers (SGD and Adam) and schedulers (cosine and reduce lr on plateau). We found that the best combination was Adam with a cosine scheduler at 200 epochs, achieving 1.532 of ADE on the validation set. We also tried other augmentations but didn't see any significant improvement. 
-
-## Milestone 2: 
-In the milestone, we have the depth and semantic masks as additional data to improve our model. 
-### Model Architecture
-
-### Experiments
-We tried many different improvements, with varying success. Namely:
-- Transformer-based trajectory decoder
-- Multi-modal trajectory prediction with a mixture of experts
-- Spatial-temporal attention mechanism
-- Feature enhancement module (local and global pathways)
-- Velocity-aware trajectory prediction with physics-based integration
-- Temporal dropout and enhanced regularisation techniques
-- Modified learning rate schedules and optimisation algorithms
-- RobustTrajectoryPredictor with dynamic input handling
-- Trajectory post processing
-- Using the ground truths as extra channels in the image as a sanity check
-- Using a Cosine Schedular with warmup
-
-
-
 
 ## Milestone 1: Basic End-to-End Planner
 
